@@ -7,7 +7,7 @@ const TURRET_NAMES = ['extérieure', 'intérieure', "d'inhibiteur"];
 
 /** Turrets / inhibitor per lane, plus the nexus: who is ahead in the siege at a glance. */
 export function StructuresStatus({ team }: { team: Team }) {
-  const { structures } = useHud();
+  const structures = useHud((h) => h.structures);
   const s = structures[team];
   return (
     <div className={styles.structures}>

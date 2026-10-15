@@ -1,0 +1,133 @@
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.footer {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Quitter / Abandonner on the left, Reprendre on the right. */
+.footer > :last-child {
+  margin-left: auto;
+}
+
+.confirmText {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* ---------- Key bindings ---------- */
+.bindings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bindingsIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bindingsIntro p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.notice {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(245, 184, 74, 0.4);
+  background: rgba(245, 184, 74, 0.08);
+  font-size: 12px;
+  color: var(--warning);
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.group h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.bindingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  font-size: 13px;
+}
+
+.keyButton {
+  min-width: 64px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-solid);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--accent-strong);
+  cursor: pointer;
+}
+
+.keyButton:hover {
+  border-color: var(--accent);
+}
+
+.listening {
+  border-color: var(--accent);
+  background: rgba(200, 170, 110, 0.15);
+  color: var(--text);
+  animation: blink 1s ease-in-out infinite;
+}
+
+.fixedRow {
+  color: var(--text-muted);
+}
+
+.fixedKey {
+  min-width: 64px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px dashed var(--border-strong);
+  font-family: var(--font);
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@keyframes blink {
+  50% {
+    box-shadow: 0 0 0 3px rgba(200, 170, 110, 0.2);
+  }
+}

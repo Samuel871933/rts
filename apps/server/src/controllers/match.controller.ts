@@ -17,5 +17,18 @@ export const show = asyncHandler<MatchRequest>(async (req, res) => {
 });
 
 export const finish = asyncHandler<MatchRequest>(async (req, res) => {
-  res.json({ match: await matchService.finishMatch(req.userId, req.params.id, req.body) });
+  res.json({ match: await matchService.abandonMatch(req.userId, req.params.id) });
+});
+
+export const log = asyncHandler<MatchRequest>(async (req, res) => {
+  res.json(await matchService.getMatchLog(req.userId, req.params.id));
+});
+
+export const addCommand = asyncHandler<MatchRequest>(async (req, res) => {
+  await matchService.addCommand(req.userId, req.params.id, req.body);
+  res.status(201).json({ ok: true });
+});
+
+export const setClock = asyncHandler<MatchRequest>(async (req, res) => {
+  res.json({ clock: await matchService.setClock(req.userId, req.params.id, req.body) });
 });

@@ -1,0 +1,130 @@
+/* ---------- Quick action wheel ---------- */
+.anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 5;
+}
+
+/* Translucent disc the buttons sit on. */
+.wheel {
+  position: absolute;
+  left: calc(var(--wheel) * -1);
+  top: calc(var(--wheel) * -1);
+  width: calc(var(--wheel) * 2);
+  height: calc(var(--wheel) * 2);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(10, 14, 20, 0) 34%, rgba(10, 14, 20, 0.72) 36%, rgba(10, 14, 20, 0.72) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(200, 170, 110, 0.25),
+    0 6px 20px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  animation: open 0.12s ease-out;
+}
+
+/* Highlight on the clicked unit / point. */
+.target {
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 213, 138, 0.8);
+  box-shadow: 0 0 12px rgba(240, 213, 138, 0.35);
+  pointer-events: none;
+}
+
+.point {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-strong);
+  background: rgba(240, 213, 138, 0.25);
+  box-shadow: 0 0 10px rgba(240, 213, 138, 0.5);
+  pointer-events: none;
+}
+
+/* Target name, or the hovered action. */
+.label {
+  position: absolute;
+  left: 0;
+  top: calc(var(--wheel) + 6px);
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(10, 14, 20, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.labelAction {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.item {
+  --tone: var(--text);
+  position: absolute;
+  left: -17px;
+  top: -17px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent);
+  background: #121a27;
+  color: var(--tone);
+  cursor: pointer;
+  transform: translate(var(--x), var(--y));
+  animation: itemIn 0.14s ease-out;
+  transition:
+    transform 0.1s,
+    background 0.1s,
+    border-color 0.1s,
+    box-shadow 0.1s;
+}
+
+.item:hover {
+  transform: translate(var(--x), var(--y)) scale(1.15);
+  border-color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 18%, #121a27);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tone) 45%, transparent);
+}
+
+.neutral {
+  --tone: #d6dde8;
+}
+
+.attack {
+  --tone: var(--red);
+}
+
+.support {
+  --tone: var(--green);
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+}

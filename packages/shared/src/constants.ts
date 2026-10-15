@@ -19,5 +19,8 @@ export const NAV_CELL_SIZE = 100;
 export const DDRAGON_VERSION = '14.24.1';
 export const championIconUrl = (iconKey: string) =>
   `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/img/champion/${iconKey}.png`;
+/** Portrait splash art shown on the loading screen (not versioned on Data Dragon). */
+export const championLoadingUrl = (iconKey: string) =>
+  `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${iconKey}_0.jpg`;
 export const itemIconUrl = (iconId: number) =>
   `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/img/item/${iconId}.png`;

@@ -1,0 +1,116 @@
+/* ---------- Action bar (left of the map) ---------- */
+.bar {
+  width: 76px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 7px;
+  overflow-y: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(18, 26, 39, 0.95), rgba(11, 16, 24, 0.95));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 2px 7px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    color 0.12s,
+    background 0.12s;
+}
+
+.icon {
+  color: var(--text);
+  transition: color 0.12s;
+}
+
+.label {
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.key {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  padding: 0 3px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  font-family: var(--font);
+  font-size: 8.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.button:hover:not(:disabled) .icon {
+  color: var(--accent-strong);
+}
+
+.button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* The selected champions already have this job. */
+.current {
+  border-color: rgba(62, 207, 142, 0.5);
+  background: linear-gradient(180deg, rgba(62, 207, 142, 0.12), rgba(62, 207, 142, 0.03));
+  color: var(--text);
+}
+
+.current .icon {
+  color: var(--green);
+}
+
+/* Waiting for the click on the map (attack-move). */
+.armed {
+  border-color: var(--accent);
+  background: rgba(200, 170, 110, 0.14);
+  color: var(--accent-strong);
+}
+
+.armed .icon {
+  color: var(--accent-strong);
+}

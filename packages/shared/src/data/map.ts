@@ -1,22 +1,12 @@
 import { MAP_SIZE } from '../constants';
 import type { Vec2 } from '../math';
 import type { Lane, Team } from '../types';
+import { STRUCTURES } from './structures';
 
 /**
- * Summoner's Rift layout. Everything walkable is described as shapes (thick polylines and circles);
- * whatever they don't cover is wall / forest. The renderer and the nav grid both read these shapes.
- * Coordinates are approximations of the real map (LoL units, blue base bottom-left).
+ * Summoner's Rift layout in LoL units (blue base bottom-left, y up). Walls / paths come from the
+ * terrain grid (data/terrain.ts); this file holds the gameplay spots: fountains, lanes and camps.
  */
-
-export interface CircleShape {
-  center: Vec2;
-  radius: number;
-}
-
-export interface PathShape {
-  points: Vec2[];
-  width: number;
-}
 
 const v = (x: number, y: number): Vec2 => ({ x, y });
 /** Reflection across the y = x diagonal: maps the top-side of a base to its bot-side. */
@@ -31,8 +21,8 @@ export const FOUNTAINS: Record<Team, Vec2> = {
 
 /** Lane centerlines, always written from blue base to red base. */
 const TOP_LANE: Vec2[] = [
-  v(1250, 2600), v(1170, 4300), v(1250, 6700), v(1000, 10400), v(1300, 13100),
-  v(2000, 13750), v(4300, 13850), v(7900, 13500), v(10500, 13650), v(11300, 13650), v(12300, 13550),
+  v(1250, 2600), v(1170, 4300), v(1250, 6700), v(1000, 10400), v(1250, 12100),
+  v(2050, 12820), v(2900, 13550), v(4300, 13850), v(7900, 13500), v(10500, 13650), v(11300, 13650), v(12300, 13550),
 ];
 
 const MID_LANE: Vec2[] = [
@@ -40,64 +30,21 @@ const MID_LANE: Vec2[] = [
   v(8950, 8450), v(9750, 10000), v(11150, 11200), v(11600, 11650), v(12500, 12500),
 ];
 
+const nexusOf = (team: Team): Vec2 => STRUCTURES.find((s) => s.kind === 'nexus' && s.team === team)!.pos;
+
+/**
+ * Each lane runs nexus to nexus, like on the Rift: waves come out of their nexus and, once the
+ * inhibitor is down, keep pushing past the nexus turrets to the enemy nexus.
+ */
+const nexusToNexus = (lane: Vec2[]): Vec2[] => [nexusOf('blue'), ...lane, nexusOf('red')];
+
 export const LANE_PATHS: Record<Lane, Vec2[]> = {
-  top: TOP_LANE,
-  mid: MID_LANE,
-  bot: TOP_LANE.map(mirrorDiagonal),
+  top: nexusToNexus(TOP_LANE),
+  mid: nexusToNexus(MID_LANE),
+  bot: nexusToNexus(TOP_LANE.map(mirrorDiagonal)),
 };
 
 export const LANE_WIDTH = 900;
-
-export const BASES: Record<Team, CircleShape> = {
-  blue: { center: v(600, 600), radius: 3900 },
-  red: { center: mirrorCenter(v(600, 600)), radius: 3900 },
-};
-
-export const RIVER: PathShape = {
-  width: 1200,
-  points: [
-    v(1700, 13100), v(3000, 11800), v(4300, 10200), v(5700, 8900), v(7400, 7400),
-    v(9100, 5900), v(10500, 4600), v(11800, 3000), v(13100, 1700),
-  ],
-};
-
-export const BARON_PIT: CircleShape = { center: v(5000, 10450), radius: 650 };
-export const DRAGON_PIT: CircleShape = { center: mirrorCenter(BARON_PIT.center), radius: 650 };
-
-/** Camp positions of the blue team's top-side jungle (blue buff side). Other quadrants are reflections. */
-const QUADRANT_CAMPS = {
-  buff: v(3800, 7900),
-  big: v(2100, 8400),
-  pack: v(3800, 6500),
-};
-
-/** Jungle corridors of the blue top-side quadrant. */
-const QUADRANT_PATHS: Vec2[][] = [
-  [v(1200, 5600), v(2600, 5700), QUADRANT_CAMPS.pack],
-  [v(4200, 4150), v(3700, 5300), QUADRANT_CAMPS.pack],
-  [QUADRANT_CAMPS.pack, QUADRANT_CAMPS.buff],
-  [QUADRANT_CAMPS.buff, QUADRANT_CAMPS.big],
-  [QUADRANT_CAMPS.big, v(1000, 8900)],
-  [QUADRANT_CAMPS.big, v(2400, 10000), v(3000, 11800)],
-  [QUADRANT_CAMPS.buff, v(4000, 9100), v(4300, 10200)],
-  [QUADRANT_CAMPS.pack, v(5000, 6700), v(5900, 6000)],
-  [QUADRANT_CAMPS.buff, v(5300, 8100), v(6400, 8300)],
-];
-
-const JUNGLE_WIDTH = 650;
-const CLEARING_RADIUS = 480;
-
-type Transform = (p: Vec2) => Vec2;
-const QUADRANTS: Transform[] = [
-  (p) => p,
-  mirrorDiagonal,
-  mirrorCenter,
-  (p) => mirrorCenter(mirrorDiagonal(p)),
-];
-
-export const JUNGLE_PATHS: PathShape[] = QUADRANTS.flatMap((transform) =>
-  QUADRANT_PATHS.map((points) => ({ points: points.map(transform), width: JUNGLE_WIDTH })),
-);
 
 export type CampKind =
   | 'blueSentinel'
@@ -118,46 +65,32 @@ export interface CampDef {
   pos: Vec2;
 }
 
-function quadrantCamps(owner: Team, side: 'buffSide' | 'redSide', transform: Transform): CampDef[] {
-  const names: Record<keyof typeof QUADRANT_CAMPS, CampKind> =
-    side === 'buffSide'
-      ? { buff: 'blueSentinel', big: 'gromp', pack: 'wolves' }
-      : { buff: 'redBrambleback', big: 'krugs', pack: 'raptors' };
-  return (Object.keys(QUADRANT_CAMPS) as (keyof typeof QUADRANT_CAMPS)[]).map((key) => ({
-    id: `${owner}_${names[key]}`,
-    kind: names[key],
-    owner,
-    pos: transform(QUADRANT_CAMPS[key]),
-  }));
-}
-
-const SCUTTLE_TOP = v(4300, 10200);
+/**
+ * Camp spots: real Summoner's Rift positions (LoL units), placed like on the Rift at the back of
+ * their walled alcove, on the axis of its opening (~230 units from the back wall).
+ */
+const camp = (owner: CampDef['owner'], kind: CampKind, x: number, y: number): CampDef => ({
+  id: owner === 'neutral' ? kind : `${owner}_${kind}`,
+  kind,
+  owner,
+  pos: v(x, y),
+});
 
 export const CAMPS: CampDef[] = [
-  ...quadrantCamps('blue', 'buffSide', QUADRANTS[0]),
-  ...quadrantCamps('blue', 'redSide', QUADRANTS[1]),
-  ...quadrantCamps('red', 'buffSide', QUADRANTS[2]),
-  ...quadrantCamps('red', 'redSide', QUADRANTS[3]),
-  { id: 'scuttle_top', kind: 'scuttle', owner: 'neutral', pos: SCUTTLE_TOP },
-  { id: 'scuttle_bot', kind: 'scuttle', owner: 'neutral', pos: mirrorCenter(SCUTTLE_TOP) },
-  { id: 'dragon', kind: 'dragon', owner: 'neutral', pos: DRAGON_PIT.center },
-  { id: 'baron', kind: 'baron', owner: 'neutral', pos: BARON_PIT.center },
+  camp('blue', 'blueSentinel', 3890, 8037),
+  camp('blue', 'gromp', 2145, 8429),
+  camp('blue', 'wolves', 3777, 6316),
+  camp('blue', 'raptors', 7038, 5396),
+  camp('blue', 'redBrambleback', 7922, 4033),
+  camp('blue', 'krugs', 8470, 2651),
+  camp('red', 'blueSentinel', 11051, 6937),
+  camp('red', 'gromp', 12783, 6488),
+  camp('red', 'wolves', 11233, 8644),
+  camp('red', 'raptors', 7879, 9494),
+  camp('red', 'redBrambleback', 7173, 10872),
+  camp('red', 'krugs', 6487, 12248),
+  { ...camp('neutral', 'scuttle', 4400, 9600), id: 'scuttle_top' },
+  { ...camp('neutral', 'scuttle', 10500, 5160), id: 'scuttle_bot' },
+  camp('neutral', 'dragon', 9818, 4223),
+  camp('neutral', 'baron', 5139, 10705),
 ];
-
-export const CLEARINGS: CircleShape[] = CAMPS.filter((c) => c.kind !== 'dragon' && c.kind !== 'baron').map(
-  (c) => ({ center: c.pos, radius: CLEARING_RADIUS }),
-);
-
-export interface WalkableShapes {
-  paths: PathShape[];
-  circles: CircleShape[];
-}
-
-export const WALKABLE: WalkableShapes = {
-  paths: [
-    ...Object.values(LANE_PATHS).map((points) => ({ points, width: LANE_WIDTH })),
-    RIVER,
-    ...JUNGLE_PATHS,
-  ],
-  circles: [BASES.blue, BASES.red, BARON_PIT, DRAGON_PIT, ...CLEARINGS],
-};

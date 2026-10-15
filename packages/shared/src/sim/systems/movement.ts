@@ -27,6 +27,8 @@ export function stopMoving(u: Unit) {
 }
 
 const MOBILE = new Set<Unit['kind']>(['champion', 'minion', 'monster']);
+/** Largest mobile unit (Baron): a pair can only overlap within a.radius + this. */
+const MAX_MOBILE_RADIUS = 240;
 
 export function updateMovement(game: Game, dt: number) {
   for (const u of game.state.units.values()) {
@@ -55,8 +57,8 @@ export function updateMovement(game: Game, dt: number) {
 function separate(game: Game) {
   for (const a of game.state.units.values()) {
     if (!a.alive || !MOBILE.has(a.kind)) continue;
-    for (const b of game.queryUnits(a.pos, a.radius + 70)) {
-      if (b.id <= a.id || !b.alive || !MOBILE.has(b.kind)) continue;
+    for (const b of game.queryUnits(a.pos, a.radius + MAX_MOBILE_RADIUS)) {
+      if (b.id <= a.id || !MOBILE.has(b.kind)) continue;
       const d = dist(a.pos, b.pos);
       const overlap = a.radius + b.radius - d;
       if (overlap <= 0) continue;

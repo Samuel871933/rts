@@ -1,0 +1,296 @@
+.screen {
+  /* Cards are sized by height; the center column is exactly five cards wide, the side panels
+     take whatever width is left on each side. */
+  --pad-x: clamp(16px, 2.5vw, 40px);
+  --col-gap: clamp(12px, 1.6vw, 28px);
+  --card-gap: 12px;
+  --row-h: calc((100vh - 170px) / 2);
+  --center-w: min(
+    calc(5 * var(--row-h) * 308 / 560 + 4 * var(--card-gap)),
+    calc(100vw - 2 * var(--pad-x) - 2 * var(--col-gap) - 2 * 220px)
+  );
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--center-w) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  column-gap: var(--col-gap);
+  row-gap: 14px;
+  padding: 24px var(--pad-x) 20px;
+  background:
+    radial-gradient(ellipse at center, rgba(200, 170, 110, 0.08), transparent 60%),
+    linear-gradient(180deg, #0b1220 0%, #0a0e14 50%, #140b10 100%);
+  user-select: none;
+}
+
+.row {
+  grid-column: 2;
+  container-type: size;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: var(--card-gap);
+  min-height: 0;
+}
+
+.card {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  /* Five cards always fit the row's width, whatever its height allows. */
+  max-width: calc((100cqw - 4 * var(--card-gap)) / 5);
+  aspect-ratio: 308 / 560;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 2px solid var(--border-strong);
+  background: var(--panel-solid);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.blue {
+  border-color: #3a6aa8;
+  box-shadow: 0 0 0 1px rgba(61, 139, 255, 0.25), 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.red {
+  border-color: #a83a48;
+  box-shadow: 0 0 0 1px rgba(255, 77, 94, 0.25), 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Gold trim on top, like the LoL frames. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  z-index: 2;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--text-muted);
+}
+
+.info {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 40px 8px 14px;
+  background: linear-gradient(180deg, transparent, rgba(5, 8, 12, 0.85) 45%, rgba(5, 8, 12, 0.96));
+  text-align: center;
+}
+
+.champion {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(13px, 1.2vw, 18px);
+  color: var(--text);
+}
+
+.role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.controller {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.footer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(900px, 100%);
+  justify-self: center;
+}
+
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 0.2s ease;
+}
+
+.middle {
+  grid-column: 2;
+  text-align: center;
+}
+
+/* ---------- Side cheat sheets ---------- */
+.side {
+  grid-row: 1 / 4;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(12px, 1vw, 18px) clamp(12px, 1.1vw, 20px);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(18, 26, 39, 0.8), rgba(11, 16, 24, 0.8));
+  font-size: clamp(11px, 0.7vw, 13px);
+}
+
+.side:first-of-type {
+  grid-column: 1;
+}
+
+.side + .side {
+  grid-column: 3;
+}
+
+/* Sections share the panel's height; their items spread over it. */
+.section {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.side h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.side h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border-strong), transparent);
+}
+
+.side ul {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Each entry is a small tile; tiles grow to share the panel's height (never below their text). */
+.side li {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(52, 71, 106, 0.45);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+}
+
+.side li.stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+}
+
+.sideTitle {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.keys {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+  min-width: 6.5em;
+}
+
+.stacked .keys {
+  min-width: 0;
+}
+
+.keys kbd {
+  min-width: 20px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-solid);
+  font-family: var(--font);
+  font-size: 11px;
+  text-align: center;
+  color: var(--accent-strong);
+}
+
+.tip {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.status {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .screen {
+    --center-w: calc(100vw - 2 * var(--pad-x));
+    grid-template-columns: 0 var(--center-w) 0;
+    column-gap: 0;
+  }
+  .side {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .row {
+    gap: 6px;
+  }
+  .info {
+    padding: 24px 4px 10px;
+  }
+  .controller {
+    display: none;
+  }
+}

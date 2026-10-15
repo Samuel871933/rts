@@ -1,4 +1,4 @@
-import type { ChampionPick } from '@macrogod/shared';
+import type { ChampionPick, MatchChampionStats, MatchClock } from '@macrogod/shared';
 import {
   DataTypes,
   Model,
@@ -13,15 +13,6 @@ import type { User } from './User';
 export const MATCH_STATUSES = ['in_progress', 'victory', 'defeat', 'abandoned'] as const;
 export type MatchStatus = (typeof MATCH_STATUSES)[number];
 
-export interface MatchChampionStats {
-  championId: string;
-  level: number;
-  kills: number;
-  deaths: number;
-  cs: number;
-  gold: number;
-}
-
 export class Match extends Model<InferAttributes<Match>, InferCreationAttributes<Match>> {
   declare id: CreationOptional<string>;
   declare userId: ForeignKey<User['id']>;
@@ -30,6 +21,8 @@ export class Match extends Model<InferAttributes<Match>, InferCreationAttributes
   /** Random opponents drawn at creation (null for matches created before opponents existed). */
   declare enemyComposition: ChampionPick[] | null;
   declare status: CreationOptional<MatchStatus>;
+  /** Real-time schedule of the game; null until the game page first opens. */
+  declare clock: CreationOptional<MatchClock | null>;
   declare durationSec: number | null;
   declare stats: MatchChampionStats[] | null;
   declare finishedAt: Date | null;
@@ -44,6 +37,7 @@ Match.init(
     composition: { type: DataTypes.JSON, allowNull: false },
     enemyComposition: { type: DataTypes.JSON, allowNull: true, defaultValue: null },
     status: { type: DataTypes.STRING(16), allowNull: false, defaultValue: 'in_progress' },
+    clock: { type: DataTypes.JSON, allowNull: true, defaultValue: null },
     durationSec: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
     stats: { type: DataTypes.JSON, allowNull: true, defaultValue: null },
     finishedAt: { type: DataTypes.DATE, allowNull: true, defaultValue: null },

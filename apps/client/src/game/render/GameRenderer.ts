@@ -1,4 +1,4 @@
-import { dist, type Unit, type Vec2 } from '@macrogod/shared';
+import { dist, type CampState, type Unit, type Vec2 } from '@macrogod/shared';
 import { Application, Container, Graphics } from 'pixi.js';
 import type { GameSession } from '../core/GameSession';
 import { Camera } from './Camera';
@@ -10,11 +10,14 @@ import { OverlayLayer } from './layers/OverlayLayer';
 import { UnitLayer, displayRadius, isShownTo } from './layers/UnitLayer';
 import { MAP_COLORS } from './theme';
 
+/** Click reach (screen pixels) around a camp marker / timer. */
+const CAMP_PICK_PX = 18;
+
 /** Pixi scene of a match. Draws the session's game state each frame; owns no game logic. */
 export class GameRenderer {
   readonly camera = new Camera();
   readonly effects: EffectsLayer;
-  readonly fog: FogLayer;
+  private readonly fog: FogLayer;
   /** Screen-space overlay for the drag-selection box. */
   readonly screenOverlay = new Graphics();
   /** Last known cursor position in world space (for ward / attack-move previews). */
@@ -52,7 +55,7 @@ export class GameRenderer {
     this.fog = new FogLayer(game, team);
     this.camps = new CampLayer(game, team);
 
-    this.world.addChild(new MapLayer(game.nav), this.overlay, this.units, this.effects, this.fog, this.camps);
+    this.world.addChild(new MapLayer(), this.overlay, this.units, this.effects, this.fog, this.camps);
     app.stage.addChild(this.world, this.screenOverlay);
 
     this.camera.resize(app.screen.width, app.screen.height);
@@ -100,6 +103,27 @@ export class GameRenderer {
       const reach = displayRadius(u, upp) * (u.kind === 'champion' ? 1.3 : 1) + 6 * upp;
       if (d <= reach && d < bestDist) {
         best = u;
+        bestDist = d;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Jungle camp whose marker is under a screen point and whose monster is not in sight
+   * (a visible monster is picked as a unit). Lets the player order a camp from the fog.
+   */
+  pickCamp(sx: number, sy: number): CampState | null {
+    const world = this.camera.screenToWorld(sx, sy);
+    const reach = CAMP_PICK_PX * this.camera.unitsPerPixel;
+    let best: CampState | null = null;
+    let bestDist = Infinity;
+    for (const camp of this.session.game.state.camps) {
+      const monster = camp.unitId !== null ? this.session.game.get(camp.unitId) : undefined;
+      if (monster && isShownTo(monster, this.session.team)) continue;
+      const d = dist(camp.def.pos, world);
+      if (d <= reach && d < bestDist) {
+        best = camp;
         bestDist = d;
       }
     }

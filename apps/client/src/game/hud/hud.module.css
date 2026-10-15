@@ -56,127 +56,20 @@
   display: block;
 }
 
-.stageStatus {
+.catchUpOverlay {
   position: absolute;
   inset: 0;
+  z-index: 20;
   display: grid;
   place-items: center;
   font-family: var(--font-display);
   font-size: 22px;
   color: var(--text-muted);
-}
-
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--panel-solid) 88%, transparent);
 }
 
 .muted {
   color: var(--text-muted);
-}
-
-.active {
-  border-color: var(--accent) !important;
-  color: var(--accent-strong) !important;
-  background: rgba(200, 170, 110, 0.14) !important;
-}
-
-/* ---------- Top bar ---------- */
-.topBar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  padding: 6px 10px;
-  white-space: nowrap;
-}
-
-.overview {
-  padding: 4px 10px;
-  border-radius: 5px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg);
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.overview:hover {
-  border-color: var(--accent);
-}
-
-.speeds {
-  display: flex;
-  gap: 4px;
-}
-
-.speeds button {
-  min-width: 34px;
-  padding: 4px 6px;
-  border-radius: 5px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg);
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.clock {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  min-width: 64px;
-  text-align: center;
-}
-
-.scores {
-  display: flex;
-  gap: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.scores span {
-  min-width: 34px;
-}
-
-.scores span:last-child {
-  min-width: 64px;
-}
-
-.objectives {
-  display: flex;
-  gap: 10px;
-}
-
-.objective {
-  min-width: 100px;
-  padding: 3px 8px;
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.objective strong {
-  color: var(--text);
-}
-
-.objectiveUp {
-  color: #c9a8ff;
-  box-shadow: inset 0 0 0 1px #6d3fc0;
-}
-
-.quit {
-  padding: 4px 10px;
-  border-radius: 5px;
-  border: 1px solid rgba(255, 92, 108, 0.45);
-  background: none;
-  color: var(--danger);
-  cursor: pointer;
 }
 
 /* ---------- Side panels ---------- */
@@ -208,6 +101,9 @@
 }
 
 .sideHeader span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--accent-strong);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -481,6 +377,12 @@
   font-weight: 600;
 }
 
+.cardResume {
+  color: var(--warning);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .cardFooter {
   display: flex;
   align-items: center;
@@ -488,6 +390,14 @@
   font-size: 11px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.gold,
+.goldReady,
+.iconStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .gold {
@@ -538,18 +448,6 @@
 }
 
 /* ---------- Right column extras ---------- */
-.minimap {
-  padding: 4px;
-  line-height: 0;
-  align-self: center;
-}
-
-.minimap canvas {
-  border-radius: 6px;
-  cursor: crosshair;
-}
-
-
 .feed {
   list-style: none;
   margin: 0;
@@ -676,223 +574,4 @@
 
 .endTable tbody tr {
   border-top: 1px solid var(--border);
-}
-
-/* ---------- Radial action menu ---------- */
-.radialAnchor {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  z-index: 5;
-}
-
-.radialRing {
-  position: absolute;
-  left: -44px;
-  top: -44px;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  border: 2px solid rgba(240, 213, 138, 0.7);
-  box-shadow: 0 0 18px rgba(240, 213, 138, 0.35);
-  pointer-events: none;
-  animation: radialIn 0.12s ease-out;
-}
-
-.radialTitle {
-  position: absolute;
-  left: 0;
-  top: 112px;
-  transform: translateX(-50%);
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(10, 14, 20, 0.9);
-  color: var(--accent-strong);
-  font-weight: 700;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.radialItem {
-  position: absolute;
-  left: -38px;
-  top: -24px;
-  width: 76px;
-  height: 48px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  border-radius: 12px;
-  border: 1px solid var(--border-strong);
-  background: rgba(13, 19, 29, 0.95);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.1;
-  text-align: center;
-  cursor: pointer;
-  animation: radialIn 0.12s ease-out;
-  transition: border-color 0.1s, background 0.1s;
-}
-
-.radialItem:hover {
-  border-color: var(--accent);
-  background: rgba(40, 34, 20, 0.95);
-}
-
-.radialIcon {
-  font-size: 16px;
-}
-
-.radial_attack {
-  border-color: rgba(255, 77, 94, 0.6);
-}
-
-.radial_support {
-  border-color: rgba(62, 207, 142, 0.6);
-}
-
-@keyframes radialIn {
-  from {
-    opacity: 0;
-    scale: 0.6;
-  }
-}
-
-.radialPoint {
-  position: absolute;
-  left: -7px;
-  top: -7px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--accent-strong);
-  background: rgba(240, 213, 138, 0.25);
-  box-shadow: 0 0 12px rgba(240, 213, 138, 0.5);
-  pointer-events: none;
-}
-
-/* ---------- Action bar (beside the map) ---------- */
-.actionBar {
-  width: 84px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 8px 6px;
-  overflow-y: auto;
-}
-
-.actionGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.actionGroup .groupLabel {
-  text-align: center;
-  margin: 0;
-}
-
-.actionButton {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: 6px 2px 5px;
-  border-radius: 8px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-elevated);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.12s;
-}
-
-.actionButton:hover:not(:disabled) {
-  border-color: var(--accent);
-}
-
-.actionButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.actionButton kbd {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  font-size: 9px;
-  padding: 0 3px;
-}
-
-.actionIcon {
-  font-size: 17px;
-  line-height: 1.2;
-}
-
-/* ---------- Behaviour bar (bottom) ---------- */
-.behaviorPanel {
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-
-.behaviorPanel .selectionInfo {
-  text-align: left;
-  flex: 1;
-  min-width: 220px;
-}
-
-.behaviors {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.toggle strong {
-  color: var(--text);
-}
-
-.toggleDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--border-strong);
-}
-
-.toggleOn {
-  border-color: rgba(62, 207, 142, 0.6);
-  color: var(--text);
-}
-
-.toggleOn .toggleDot {
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-}
-
-.toggleMixed .toggleDot {
-  background: var(--warning);
 }

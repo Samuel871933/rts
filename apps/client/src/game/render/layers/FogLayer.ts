@@ -10,9 +10,10 @@ const REFRESH_MS = 90;
  * stretched over the map (linear filtering gives soft edges for free).
  */
 export class FogLayer extends Sprite {
-  readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private lastDraw = 0;
+  /** Vision only changes when the game steps: nothing to redraw while paused. */
+  private lastTick = -1;
 
   constructor(
     private readonly game: Game,
@@ -21,17 +22,24 @@ export class FogLayer extends Sprite {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = RESOLUTION;
     super(Texture.from(canvas));
-    this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.width = this.height = MAP_SIZE;
     this.redraw();
   }
 
   update(now: number) {
-    if (now - this.lastDraw < REFRESH_MS) return;
+    const { tick } = this.game.state;
+    if (tick === this.lastTick || now - this.lastDraw < REFRESH_MS) return;
     this.lastDraw = now;
+    this.lastTick = tick;
     this.redraw();
     this.texture.source.update();
+  }
+
+  override destroy(options?: Parameters<Sprite['destroy']>[0]) {
+    const texture = this.texture;
+    super.destroy(options);
+    texture.destroy(true);
   }
 
   private redraw() {

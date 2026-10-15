@@ -6,8 +6,8 @@ import styles from './hud.module.css';
 
 export function EndScreen({ onExit }: { onExit: () => void }) {
   const { session } = useGameContext();
-  const hud = useHud();
-  if (!hud.winner) return null;
+  const hud = useHud((h) => (h.winner ? h : null));
+  if (!hud?.winner) return null;
   const won = hud.winner === session.team;
 
   return (

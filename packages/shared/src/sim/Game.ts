@@ -2,7 +2,7 @@ import { SIM_DT } from '../constants';
 import { WAVE_RULES } from '../data/minions';
 import { STRUCTURES } from '../data/structures';
 import type { Vec2 } from '../math';
-import { TEAMS, type ChampionPick, type Role, type Team } from '../types';
+import { LANES, TEAMS, type ChampionPick, type Lane, type Role, type Team } from '../types';
 import { createChampion, createStructure } from './factory';
 import { getNavGrid, type NavGrid } from './nav/NavGrid';
 import { createRng, type Rng } from './rng';
@@ -16,7 +16,17 @@ import { autoBuy, recomputeChampionStats } from './systems/progression';
 import { updateStructures } from './systems/structures';
 import { updateVision } from './systems/vision';
 import { updateWaves } from './systems/waves';
-import type { ChampionBehavior, ChampionUnit, GameEvent, GameEventRecord, GameState, Order, StructureUnit, Unit } from './types';
+import type {
+  ChampionBehavior,
+  ChampionUnit,
+  GameEvent,
+  GameEventRecord,
+  GameState,
+  MinionUnit,
+  Order,
+  StructureUnit,
+  Unit,
+} from './types';
 
 export interface GameSetup {
   seed: number;
@@ -50,6 +60,8 @@ export class Game {
   readonly nav: NavGrid = getNavGrid();
   readonly rng: Rng;
   private readonly grid = new SpatialGrid<Unit>(400);
+  /** Alive minions per team and lane, rebuilt each tick (plus the ones spawned during it). */
+  private readonly laneMinions = {} as Record<Team, Record<Lane, MinionUnit[]>>;
   private events: GameEventRecord[] = [];
   private nextId = 1;
 
@@ -109,7 +121,13 @@ export class Game {
 
   add<T extends Unit>(unit: T): T {
     this.state.units.set(unit.id, unit);
+    if (unit.kind === 'minion') this.laneMinions[unit.team]?.[unit.lane].push(unit);
     return unit;
+  }
+
+  /** Alive minions of a team in a lane (as of this tick). */
+  minionsOf(team: Team, lane: Lane): readonly MinionUnit[] {
+    return this.laneMinions[team][lane];
   }
 
   get(id: number): Unit | undefined {
@@ -123,7 +141,7 @@ export class Game {
 
   /** Alive units within radius (positions as of the start of the current tick). */
   queryUnits(pos: Vec2, radius: number): Unit[] {
-    return this.grid.query(pos, radius).filter((u) => u.alive);
+    return this.grid.query(pos, radius);
   }
 
   emit(event: GameEvent) {
@@ -146,6 +164,7 @@ export class Game {
     if (!c) return;
     if (behavior.autoRetreat !== undefined) c.autoRetreat = behavior.autoRetreat;
     if (behavior.autoReturn !== undefined) c.autoReturn = behavior.autoReturn;
+    if (behavior.autoTurretSafety !== undefined) c.autoTurretSafety = behavior.autoTurretSafety;
     if (behavior.autoFarm !== undefined && behavior.autoFarm !== c.autoFarm) {
       c.autoFarm = behavior.autoFarm;
       if (!c.autoFarm) {
@@ -162,7 +181,15 @@ export class Game {
 
   private rebuildGrid() {
     this.grid.clear();
-    for (const u of this.state.units.values()) if (u.alive) this.grid.insert(u);
+    for (const team of TEAMS) {
+      const lists = (this.laneMinions[team] ??= { top: [], mid: [], bot: [] });
+      for (const lane of LANES) lists[lane].length = 0;
+    }
+    for (const u of this.state.units.values()) {
+      if (!u.alive) continue;
+      this.grid.insert(u);
+      if (u.kind === 'minion') this.laneMinions[u.team][u.lane].push(u);
+    }
   }
 
   step() {
@@ -174,8 +201,9 @@ export class Game {
       u.prevPos.x = u.pos.x;
       u.prevPos.y = u.pos.y;
     }
-    s.time += dt;
     s.tick++;
+    // From the tick count rather than summed: no floating point drift over a long game.
+    s.time = s.tick * dt;
 
     this.rebuildGrid();
     updateWaves(this);

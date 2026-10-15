@@ -7,10 +7,10 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const requireAuth: RequestHandler = (req, _res, next) => {
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) return next(unauthorized());
+  const token = /^Bearer\s+(\S+)$/i.exec(req.headers.authorization ?? '')?.[1];
+  if (!token) return next(unauthorized());
   try {
-    (req as AuthenticatedRequest).userId = verifyToken(header.slice(7)).sub;
+    (req as AuthenticatedRequest).userId = verifyToken(token).sub;
     next();
   } catch {
     next(unauthorized('Session expirée, reconnecte-toi'));

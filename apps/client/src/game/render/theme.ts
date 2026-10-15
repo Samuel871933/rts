@@ -1,15 +1,12 @@
 import type { CampKind, Side } from '@macrogod/shared';
 
-/** Map + unit palette shared by the Pixi renderer and the 2D minimap. */
+/** Map + unit palette of the Pixi renderer. */
 export const MAP_COLORS = {
   wall: '#0f1a14',
-  jungle: '#2b3a26',
-  clearing: '#33452c',
+  ground: '#2e3d28',
   laneEdge: '#3e4a33',
   laneDirt: '#5c5139',
   river: '#1d4a63',
-  pit: '#173d55',
-  pitRing: '#6d5ca8',
   baseBlue: '#1e2f45',
   baseRed: '#41232a',
   fountainBlue: '#2d5d9b',

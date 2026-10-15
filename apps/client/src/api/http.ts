@@ -11,11 +11,13 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
+  /** Lets the request finish even if the page is being closed / reloaded. */
+  keepalive?: boolean;
 }
 
-export async function apiFetch<T>(path: string, { method = 'GET', body }: RequestOptions = {}): Promise<T> {
+export async function apiFetch<T>(path: string, { method = 'GET', body, keepalive }: RequestOptions = {}): Promise<T> {
   const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -23,7 +25,12 @@ export async function apiFetch<T>(path: string, { method = 'GET', body }: Reques
 
   let res: Response;
   try {
-    res = await fetch(`/api${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    res = await fetch(`/api${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      keepalive,
+    });
   } catch {
     throw new ApiError('Serveur injoignable', 0);
   }

@@ -1,4 +1,5 @@
 import { ITEMS_BY_ID, MAX_ITEM_SLOTS, itemIconUrl } from '@macrogod/shared';
+import { Coins, Eye, SlidersHorizontal } from 'lucide-react';
 import { memo } from 'react';
 import { ChampionIcon } from '../../components/ui/ChampionIcon';
 import { ACTIVITY_LABELS, ROLE_LABELS } from '../../i18n/labels';
@@ -10,13 +11,13 @@ interface ChampionCardProps {
   champion: HudChampion;
   index: number;
   selected: boolean;
-  onSelect: (id: number, additive: boolean) => void;
-  onFocus: (id: number) => void;
+  /** Ally cards select their champion; opponent cards are read-only. */
+  onSelect?: (id: number, additive: boolean) => void;
   /** Opponent card: scoreboard info only (no gold, orders or HP while out of sight). */
   enemy?: boolean;
 }
 
-function ChampionCardView({ champion: c, index, selected, onSelect, onFocus, enemy }: ChampionCardProps) {
+function ChampionCardView({ champion: c, index, selected, onSelect, enemy }: ChampionCardProps) {
   const hpRatio = c.maxHp > 0 ? c.hp / c.maxHp : 0;
   const canBuy = !enemy && c.nextItem !== null && c.gold >= c.nextItem.cost;
   const slots = Array.from({ length: MAX_ITEM_SLOTS }, (_, i) => c.items[i] ?? null);
@@ -24,10 +25,7 @@ function ChampionCardView({ champion: c, index, selected, onSelect, onFocus, ene
   return (
     <div
       className={`${styles.card} ${enemy ? styles.cardEnemy : ''} ${selected ? styles.cardSelected : ''} ${!c.alive ? styles.cardDead : ''}`}
-      onClick={(e) => onSelect(c.id, e.shiftKey)}
-      onDoubleClick={() => onFocus(c.id)}
-      role="button"
-      tabIndex={-1}
+      {...(onSelect && { onClick: (e: React.MouseEvent) => onSelect(c.id, e.shiftKey), role: 'button', tabIndex: -1 })}
     >
       <div className={styles.cardPortrait}>
         <ChampionIcon championId={c.defId} size={48} dimmed={!c.alive} />
@@ -63,30 +61,40 @@ function ChampionCardView({ champion: c, index, selected, onSelect, onFocus, ene
             )}
             <div className={styles.cardStatus}>
               <span>{ACTIVITY_LABELS[c.activity]}</span>
-              <span className={styles.cardOrder}>{orderLabel(c.order)}</span>
+              {c.resumeIn !== null ? (
+                <span className={styles.cardResume} title="Farm auto : repart à son poste sans nouvel ordre">
+                  Retour au poste {Math.ceil(c.resumeIn)} s
+                </span>
+              ) : (
+                <span className={styles.cardOrder}>{orderLabel(c.order)}</span>
+              )}
             </div>
           </>
         )}
         <div className={styles.cardFooter}>
           {!enemy && (
             <span className={canBuy ? styles.goldReady : styles.gold} title={canBuy ? 'Peut acheter un objet : rappelle-le !' : undefined}>
-              🪙 {Math.floor(c.gold)}
+              <Coins size={12} /> {Math.floor(c.gold)}
             </span>
           )}
           <span title="Kills / morts / sbires">
             {c.kills}/{c.deaths} · {c.cs} cs
           </span>
-          {!enemy && <span title="Balises disponibles">👁 {c.wardCharges}</span>}
+          {!enemy && (
+            <span className={styles.iconStat} title="Balises disponibles">
+              <Eye size={12} /> {c.wardCharges}
+            </span>
+          )}
           {c.buffs.blue && <span className={styles.buffBlue} title="Buff bleu" />}
           {c.buffs.red && <span className={styles.buffRed} title="Buff rouge" />}
           {c.buffs.baron && <span className={styles.buffBaron} title="Main de Nashor" />}
-          {!enemy && (!c.autoRetreat || !c.autoReturn || !c.autoFarm) && (
+          {!enemy && (!c.autoRetreat || !c.autoReturn || !c.autoFarm || !c.autoTurretSafety) && (
             <span
-              title={[!c.autoRetreat && 'Repli auto OFF', !c.autoReturn && 'Retour en lane OFF', !c.autoFarm && 'Farm auto OFF']
+              title={[!c.autoRetreat && 'Repli auto OFF', !c.autoReturn && 'Retour en lane OFF', !c.autoFarm && 'Farm auto OFF', !c.autoTurretSafety && 'Sécurité tour OFF']
                 .filter(Boolean)
                 .join(' · ')}
             >
-              ⚙
+              <SlidersHorizontal size={12} />
             </span>
           )}
         </div>

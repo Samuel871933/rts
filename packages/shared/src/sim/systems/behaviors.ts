@@ -6,7 +6,7 @@ import { enemyOf, type Lane } from '../../types';
 import { createWard } from '../factory';
 import type { Game } from '../Game';
 import { laneTrack } from '../LaneTrack';
-import { canAttack, inAttackRange, isStructure, isTargetable, resistFactor } from '../queries';
+import { canAttack, inAttackRange, isStructure, isTargetable, minionsUnderTurret, resistFactor } from '../queries';
 import type { CampState, ChampionUnit, JungleScope, StructureUnit, Unit, WardUnit } from '../types';
 import { moveToward, stopMoving } from './movement';
 
@@ -18,11 +18,18 @@ export function finishOrder(c: ChampionUnit) {
 }
 
 /**
- * Back from the fountain (recall / respawn): with "retour en lane", resume the usual job.
- * With farm auto OFF the champion only acts on orders, so only an explicit job is resumed.
+ * Back at the fountain (recall / respawn).
+ * "Retour en lane" ON: resume the current job (or the usual post with farm auto ON).
+ * OFF: wait at the base for an order (farm auto does not pull it out either, see autoFarmCountdown).
  */
 export function returnToJob(c: ChampionUnit) {
-  if (!c.standingOrder && c.autoReturn && c.autoFarm && c.homeOrder.type !== 'idle') c.standingOrder = c.homeOrder;
+  if (!c.autoReturn) {
+    c.order = { type: 'idle' };
+    c.targetId = null;
+    stopMoving(c);
+    return;
+  }
+  if (!c.standingOrder && c.autoFarm && c.homeOrder.type !== 'idle') c.standingOrder = c.homeOrder;
   finishOrder(c);
 }
 
@@ -52,6 +59,8 @@ export function runBehavior(game: Game, c: ChampionUnit) {
       return attackMoveBehavior(game, c, order.pos);
     case 'attack':
       return attackBehavior(game, c, order.targetId);
+    case 'camp':
+      return campBehavior(game, c, order.campId);
     case 'lane':
       return laneBehavior(game, c, order.lane);
     case 'jungle':
@@ -130,16 +139,39 @@ function attackBehavior(game: Game, c: ChampionUnit, targetId: number) {
   engage(game, c, target);
 }
 
+/** Close enough to a camp to see whether its monster is there. */
+const CAMP_CHECK_RANGE = 350;
+
+/**
+ * Camp order (works from the fog): walk to the camp, fight its monster if it is there.
+ * Nobody home once we can see the spot: the order ends and the champion moves on to its next job.
+ */
+function campBehavior(game: Game, c: ChampionUnit, campId: string) {
+  const camp = game.state.camps.find((x) => x.def.id === campId);
+  if (!camp) return finishOrder(c);
+  const monster = camp.unitId !== null ? game.get(camp.unitId) : undefined;
+  if (monster?.alive && canAttack(game, c, monster)) {
+    c.activity = 'jungling';
+    return engage(game, c, monster);
+  }
+  c.targetId = null;
+  if (dist(c.pos, camp.def.pos) > CAMP_CHECK_RANGE || (monster?.alive && !monster.visible[c.team])) {
+    // Not there yet (or vision not refreshed yet on arrival).
+    c.activity = 'moving';
+    moveToward(game, c, camp.def.pos);
+    return;
+  }
+  game.emit({ type: 'orderFailed', championId: c.id, reason: 'campEmpty' });
+  finishOrder(c);
+}
+
 function laneBehavior(game: Game, c: ChampionUnit, lane: Lane) {
   const track = laneTrack(c.team, lane);
   const enemyTeam = enemyOf(c.team);
   const enemyTurrets = game.state.structures.filter(
     (s) => s.alive && s.kind === 'turret' && s.team === enemyTeam && (s.lane === lane || s.lane === null),
   );
-  const allyMinions: Unit[] = [];
-  for (const u of game.state.units.values()) {
-    if (u.kind === 'minion' && u.alive && u.team === c.team && u.lane === lane) allyMinions.push(u);
-  }
+  const allyMinions = game.minionsOf(c.team, lane);
 
   // 1. Never tank a turret: back off out of its range.
   const threat = enemyTurrets.find((t) => t.targetId === c.id);
@@ -152,8 +184,12 @@ function laneBehavior(game: Game, c: ChampionUnit, lane: Lane) {
   }
 
   // A turret is only safe to stand under while enough of our minions are soaking its shots.
-  const tankers = (t: StructureUnit) =>
-    allyMinions.filter((m) => dist(m.pos, t.pos) <= RULES.turretRange + m.radius).length;
+  const tankerCounts = new Map<StructureUnit, number>();
+  const tankers = (t: StructureUnit) => {
+    let n = tankerCounts.get(t);
+    if (n === undefined) tankerCounts.set(t, (n = minionsUnderTurret(game, c.team, t)));
+    return n;
+  };
   const isTanked = (t: StructureUnit) => tankers(t) >= 2;
   const canDive = (t: StructureUnit) => tankers(t) >= 3 && c.hp > c.maxHp * 0.4;
   const unsafe = (p: Vec2) =>

@@ -25,6 +25,14 @@ export const RULES = {
   fountainMissingHealPerSecond: 0.16,
 
   acquisitionRange: 700,
+  /** Minions only fight what stands in their lane: at most this far from the lane centerline. */
+  minionLaneCorridor: 650,
+  /** ...and never chase farther than this from the lane spot where the fight started. */
+  minionChaseRange: 800,
+  /** Monsters drop a target this far beyond their leash (champions leaving the camp area). */
+  monsterDisengage: 700,
+  /** Seconds a monster keeps trying to reach a target it can't hit before resetting. */
+  monsterPatience: 4,
   championSight: 1350,
   turretSight: 1350,
   baseStructureSight: 1200,
@@ -77,6 +85,8 @@ export const RULES = {
    */
   championRetaliationWindow: 2,
   escortDistance: 350,
+  /** "Repli auto": recall once when HP drops under this share of max HP. */
+  autoRetreatHpRatio: 0.25,
   /** "Farm auto": a champion left without any order this long (seconds) resumes its usual job. */
   autoFarmDelay: 15,
 } as const;

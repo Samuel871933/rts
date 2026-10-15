@@ -43,15 +43,18 @@ export class LaneTrack {
   }
 }
 
-const tracks = new Map<string, LaneTrack>();
+/** Built once: lane geometry never changes, and every game shares it read-only. */
+const TRACKS: Record<Team, Record<Lane, LaneTrack>> = {
+  blue: {
+    top: new LaneTrack(LANE_PATHS.top),
+    mid: new LaneTrack(LANE_PATHS.mid),
+    bot: new LaneTrack(LANE_PATHS.bot),
+  },
+  red: {
+    top: new LaneTrack([...LANE_PATHS.top].reverse()),
+    mid: new LaneTrack([...LANE_PATHS.mid].reverse()),
+    bot: new LaneTrack([...LANE_PATHS.bot].reverse()),
+  },
+};
 
-export function laneTrack(team: Team, lane: Lane): LaneTrack {
-  const key = `${team}:${lane}`;
-  let track = tracks.get(key);
-  if (!track) {
-    const points = team === 'blue' ? LANE_PATHS[lane] : [...LANE_PATHS[lane]].reverse();
-    track = new LaneTrack(points);
-    tracks.set(key, track);
-  }
-  return track;
-}
+export const laneTrack = (team: Team, lane: Lane): LaneTrack => TRACKS[team][lane];

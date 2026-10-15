@@ -1,4 +1,5 @@
-import { ROLES } from '@macrogod/shared';
+import { ROLES, enemyOf } from '@macrogod/shared';
+import { Coins } from 'lucide-react';
 import { useCallback } from 'react';
 import { ROLE_LABELS, formatGold } from '../../i18n/labels';
 import { useGameContext, useHud } from '../core/GameSessionContext';
@@ -8,23 +9,18 @@ import styles from './hud.module.css';
 
 /** Left column: the player's five champions. */
 export function AllyPanel() {
-  const { session, renderer } = useGameContext();
-  const hud = useHud();
+  const { session } = useGameContext();
+  const hud = useHud((h) => ({ champions: h.champions, selection: h.selection, teams: h.teams }));
 
   const onSelect = useCallback((id: number, additive: boolean) => session.select([id], additive), [session]);
-  const onFocus = useCallback(
-    (id: number) => {
-      const c = session.game.champion(id);
-      if (c?.alive) renderer.camera.centerOnWorld(c.pos);
-    },
-    [session, renderer],
-  );
 
   return (
     <div className={`${styles.sidePanel} ${styles.allySide}`}>
       <header className={styles.sideHeader}>
         <h2>Ton équipe</h2>
-        <span>🪙 {formatGold(hud.teams[session.team].gold)}</span>
+        <span>
+          <Coins size={14} /> {formatGold(hud.teams[session.team].gold)}
+        </span>
       </header>
       <div className={styles.cards}>
         {hud.champions.map((c, i) => (
@@ -34,7 +30,6 @@ export function AllyPanel() {
             index={i}
             selected={hud.selection.includes(c.id)}
             onSelect={onSelect}
-            onFocus={onFocus}
           />
         ))}
       </div>
@@ -45,17 +40,9 @@ export function AllyPanel() {
 
 /** Right column: the opposing composition (empty until enemy champions exist) and their base. */
 export function EnemyPanel() {
-  const { session, renderer } = useGameContext();
-  const hud = useHud();
-  const enemyTeam = session.team === 'blue' ? 'red' : 'blue';
-
-  const onFocus = useCallback(
-    (id: number) => {
-      const c = session.game.champion(id);
-      if (c?.alive && c.visible[session.team]) renderer.camera.centerOnWorld(c.pos);
-    },
-    [session, renderer],
-  );
+  const { session } = useGameContext();
+  const hud = useHud((h) => ({ enemies: h.enemies }));
+  const enemyTeam = enemyOf(session.team);
 
   return (
     <div className={`${styles.sidePanel} ${styles.enemySide}`}>
@@ -65,7 +52,7 @@ export function EnemyPanel() {
       <div className={styles.cards}>
         {hud.enemies.length > 0
           ? hud.enemies.map((c, i) => (
-              <ChampionCard key={c.id} champion={c} index={i} selected={false} onSelect={onFocus} onFocus={onFocus} enemy />
+              <ChampionCard key={c.id} champion={c} index={i} selected={false} enemy />
             ))
           : ROLES.map((role) => (
               <div key={role} className={styles.emptySlot}>

@@ -1,13 +1,11 @@
+import { RULES } from '../data/rules';
 import { dist, type Vec2 } from '../math';
-import type { Team } from '../types';
+import { LANES, type Team } from '../types';
 import type { Game } from './Game';
-import type { ChampionUnit, MinionUnit, MonsterUnit, StructureUnit, Unit } from './types';
+import type { ChampionUnit, StructureUnit, Unit } from './types';
 
 export const isStructure = (u: Unit): u is StructureUnit =>
   u.kind === 'turret' || u.kind === 'inhibitor' || u.kind === 'nexus';
-export const isChampion = (u: Unit): u is ChampionUnit => u.kind === 'champion';
-export const isMinion = (u: Unit): u is MinionUnit => u.kind === 'minion';
-export const isMonster = (u: Unit): u is MonsterUnit => u.kind === 'monster';
 
 export const isEnemy = (a: Unit, b: Unit): boolean => a.team !== b.team;
 
@@ -31,10 +29,18 @@ export function resistFactor(resist: number): number {
   return resist >= 0 ? 100 / (100 + resist) : 2 - 100 / (100 - resist);
 }
 
-export function championsOf(game: Game, team: Team): ChampionUnit[] {
-  return game.state.champions.filter((c) => c.team === team);
-}
-
 export function aliveChampionsNear(game: Game, team: Team, pos: Vec2, radius: number): ChampionUnit[] {
   return game.state.champions.filter((c) => c.team === team && c.alive && dist(c.pos, pos) <= radius);
+}
+
+/** Allied minions standing in an enemy turret's range: they soak its shots. */
+export function minionsUnderTurret(game: Game, team: Team, turret: StructureUnit): number {
+  let n = 0;
+  // Lane turrets only see their lane's wave; nexus turrets (no lane) can see any of them.
+  for (const lane of turret.lane ? [turret.lane] : LANES) {
+    for (const u of game.minionsOf(team, lane)) {
+      if (u.alive && dist(u.pos, turret.pos) <= RULES.turretRange + u.radius) n++;
+    }
+  }
+  return n;
 }

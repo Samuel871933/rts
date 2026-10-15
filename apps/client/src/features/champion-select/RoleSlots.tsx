@@ -1,4 +1,5 @@
 import { CHAMPIONS_BY_ID, ROLES, type Role } from '@macrogod/shared';
+import { X } from 'lucide-react';
 import { ChampionIcon } from '../../components/ui/ChampionIcon';
 import { ROLE_LABELS } from '../../i18n/labels';
 import styles from './ChampionSelect.module.css';
@@ -30,7 +31,7 @@ export function RoleSlots({ slots, activeRole, onSelectRole, onClear }: RoleSlot
             </button>
             {championId && (
               <button className={styles.slotClear} onClick={() => onClear(role)} aria-label={`Retirer ${ROLE_LABELS[role]}`}>
-                ✕
+                <X size={14} />
               </button>
             )}
           </div>

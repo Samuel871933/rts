@@ -1,0 +1,127 @@
+/* ---------- Top bar (above the map) ---------- */
+.bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 6px 52px 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(18, 26, 39, 0.95), rgba(11, 16, 24, 0.95));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+
+.speeds {
+  display: flex;
+  gap: 4px;
+}
+
+.speed {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.speed:hover {
+  border-color: var(--accent);
+}
+
+.active {
+  border-color: var(--accent);
+  background: rgba(200, 170, 110, 0.14);
+  color: var(--accent-strong);
+}
+
+.clock {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 64px;
+  text-align: center;
+}
+
+.scores {
+  display: flex;
+  gap: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.scores span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 34px;
+}
+
+.scores svg {
+  color: var(--accent);
+}
+
+.objectives {
+  display: flex;
+  gap: 8px;
+}
+
+.objective {
+  min-width: 100px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.objective strong {
+  color: var(--text);
+}
+
+.objectiveUp {
+  color: #c9a8ff;
+  box-shadow: inset 0 0 0 1px #6d3fc0;
+}
+
+/* Settings gear, pinned to the right end. */
+.settings {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.settings:hover {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+
+.settings:hover svg {
+  transform: rotate(45deg);
+}
+
+.settings svg {
+  transition: transform 0.25s;
+}

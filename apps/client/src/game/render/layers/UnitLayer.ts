@@ -1,4 +1,4 @@
-import { MONSTER_STATS, isTargetable, lerpVec, type CampKind, type Game, type Team, type Unit, type Vec2 } from '@macrogod/shared';
+import { MONSTER_STATS, autoFarmCountdown, isTargetable, lerpVec, type CampKind, type Game, type Team, type Unit, type Vec2 } from '@macrogod/shared';
 import { Container, Graphics, Text } from 'pixi.js';
 import { toView } from '../Camera';
 import { COLORS, TEAM_COLORS, TEAM_DARK } from '../theme';
@@ -31,6 +31,8 @@ export class UnitLayer extends Container {
   private readonly shapes = new Graphics();
   private readonly tokens = new Container();
   private readonly bars = new Graphics();
+  /** Level badges / countdowns, above all portraits and HP bars. */
+  private readonly badges = new Container();
   private readonly labels = new Container();
   private readonly tokenById = new Map<number, ChampionToken>();
   private readonly labelById = new Map<number, Text>();
@@ -40,11 +42,12 @@ export class UnitLayer extends Container {
     private readonly team: Team,
   ) {
     super();
-    this.addChild(this.shapes, this.tokens, this.bars, this.labels);
+    this.addChild(this.shapes, this.tokens, this.bars, this.badges, this.labels);
     for (const c of game.state.champions) {
       const token = new ChampionToken(c);
       this.tokenById.set(c.id, token);
       this.tokens.addChild(token);
+      this.badges.addChild(token.overlay);
     }
   }
 
@@ -132,12 +135,15 @@ export class UnitLayer extends Container {
       const token = this.tokenById.get(c.id)!;
       const visible = c.alive && isShownTo(c, this.team);
       token.visible = visible;
+      token.syncOverlay();
       if (!visible) continue;
       const p = renderPos(c, alpha);
       const r = displayRadius(c, upp);
       token.position.set(p.x, p.y);
       token.scale.set(r / TOKEN_RADIUS);
       token.setLevel(c.level);
+      token.setResumeIn(c.team === this.team ? autoFarmCountdown(c, time) : null);
+      token.syncOverlay();
 
       if (selection.has(c.id)) {
         g.circle(p.x, p.y, r * 1.32).stroke({ width: 3 * upp, color: COLORS.selection });

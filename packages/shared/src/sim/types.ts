@@ -42,6 +42,8 @@ export type Order =
   | { type: 'move'; pos: Vec2 }
   | { type: 'attackMove'; pos: Vec2 }
   | { type: 'attack'; targetId: number }
+  /** Go clear a jungle camp, seen or not: attack its monster if there is one, else move on. */
+  | { type: 'camp'; campId: string }
   | { type: 'lane'; lane: Lane }
   | { type: 'jungle'; scope: JungleScope }
   | { type: 'ward'; pos: Vec2 }
@@ -61,6 +63,11 @@ export interface ChampionBehavior {
    * OFF: it drops its farming job and only acts on orders.
    */
   autoFarm: boolean;
+  /**
+   * Leave an enemy turret's range when it would start shooting us (no allied minions left under it,
+   * or it already targets us), instead of finishing a siege / attack order there.
+   */
+  autoTurretSafety: boolean;
 }
 
 export type Activity =
@@ -110,10 +117,13 @@ export interface ChampionUnit extends UnitBase {
   autoRetreat: boolean;
   autoReturn: boolean;
   autoFarm: boolean;
+  autoTurretSafety: boolean;
   /** Usual job (last lane / jungle order, or the role's): what autoReturn / autoFarm go back to. */
   homeOrder: Order;
   /** Game time since which the champion has been idle without orders (autoFarm). */
   idleSince: number | null;
+  /** Auto retreat already fired during this low-HP spell: later player orders are not overridden. */
+  retreatFired: boolean;
   activity: Activity;
   recallTimer: number | null;
   respawnTimer: number;
@@ -142,6 +152,8 @@ export interface MinionUnit extends UnitBase {
   lane: Lane;
   waypoint: number;
   retargetAt: number;
+  /** Lane spot it left to fight: it never chases farther than MINION_CHASE_RANGE from there. */
+  chaseFrom: Vec2 | null;
   /** Gold bounty (siege / super minions gain gold with upgrades). */
   bounty: number;
 }
@@ -165,8 +177,11 @@ export interface MonsterUnit extends UnitBase {
   team: 'neutral';
   campId: string;
   home: Vec2;
+  /** How far from its camp the monster may step (0 = never moves, like Baron). */
   leash: number;
   resetting: boolean;
+  /** Since when it has been unable to hit its target (gives up after RULES.monsterPatience). */
+  blockedSince: number | null;
   passive: boolean;
   epic: boolean;
 }
@@ -237,10 +252,10 @@ export type GameEvent =
   | { type: 'campSpawned'; campId: string; epic: boolean }
   | { type: 'campCleared'; campId: string; championId: number | null; team: Team | null; epic: boolean }
   | { type: 'buffGained'; championId: number; buff: 'blue' | 'red' | 'baron' }
-  | { type: 'recallStarted' | 'recallCompleted' | 'recallCancelled' | 'autoRetreat'; championId: number }
+  | { type: 'recallStarted' | 'recallCompleted' | 'recallCancelled' | 'autoRetreat' | 'turretRetreat'; championId: number }
   | { type: 'wardPlaced'; championId: number; pos: Vec2 }
   | { type: 'smite'; championId: number; targetId: number }
-  | { type: 'orderFailed'; championId: number; reason: 'noWardCharge' | 'notTargetable' | 'dead' }
+  | { type: 'orderFailed'; championId: number; reason: 'noWardCharge' | 'notTargetable' | 'dead' | 'campEmpty' }
   | { type: 'victory'; winner: Team };
 
 export type GameEventRecord = GameEvent & { time: number };

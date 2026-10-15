@@ -7,7 +7,7 @@ const HINTS = {
 } as const;
 
 export function ModeHint() {
-  const { commandMode, paused } = useHud();
+  const { commandMode, paused } = useHud((h) => ({ commandMode: h.commandMode, paused: h.paused }));
   if (commandMode === 'none' && !paused) return null;
   return (
     <div className={styles.modeHint}>

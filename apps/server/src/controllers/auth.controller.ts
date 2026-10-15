@@ -13,3 +13,7 @@ export const login = asyncHandler(async (req, res) => {
 export const me = asyncHandler<AuthenticatedRequest>(async (req, res) => {
   res.json({ user: await authService.getUser(req.userId) });
 });
+
+export const updateSettings = asyncHandler<AuthenticatedRequest>(async (req, res) => {
+  res.json({ user: await authService.updateSettings(req.userId, req.body) });
+});

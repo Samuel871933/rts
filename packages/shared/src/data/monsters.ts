@@ -15,7 +15,7 @@ export interface MonsterStats {
   xp: number;
   firstSpawn: number;
   respawn: number;
-  /** Max distance from its camp before the monster resets. */
+  /** How far from its camp the monster may step while fighting (0 = never moves, like Baron). */
   leash: number;
   epic: boolean;
   /** Scuttle crab doesn't fight back. */
@@ -32,7 +32,7 @@ const camp = (s: Partial<MonsterStats> & Pick<MonsterStats, 'name' | 'hp' | 'gol
   radius: 90,
   firstSpawn: 90,
   respawn: 135,
-  leash: 900,
+  leash: 450,
   epic: false,
   passive: false,
   buff: null,
@@ -45,8 +45,8 @@ const camp = (s: Partial<MonsterStats> & Pick<MonsterStats, 'name' | 'hp' | 'gol
  * scuttle 2:55; dragon 5:00; baron 20:00).
  */
 export const MONSTER_STATS: Record<CampKind, MonsterStats> = {
-  blueSentinel: camp({ name: 'Sentinelle bleue', hp: 2300, ad: 66, armor: 42, mr: 42, leash: 650, attackSpeed: 0.493, gold: 90, xp: 95, respawn: 300, radius: 110, firstSpawn: 55, buff: 'blue' }),
-  redBrambleback: camp({ name: 'Ronceboeuf rouge', hp: 2300, ad: 66, armor: 42, mr: 42, leash: 650, attackSpeed: 0.493, gold: 90, xp: 95, respawn: 300, radius: 110, firstSpawn: 55, buff: 'red' }),
+  blueSentinel: camp({ name: 'Sentinelle bleue', hp: 2300, ad: 66, armor: 42, mr: 42, attackSpeed: 0.493, gold: 90, xp: 95, respawn: 300, radius: 110, firstSpawn: 55, buff: 'blue' }),
+  redBrambleback: camp({ name: 'Ronceboeuf rouge', hp: 2300, ad: 66, armor: 42, mr: 42, attackSpeed: 0.493, gold: 90, xp: 95, respawn: 300, radius: 110, firstSpawn: 55, buff: 'red' }),
   gromp: camp({ name: 'Gromp', hp: 2050, ad: 70, armor: 42, attackSpeed: 0.425, range: 150, gold: 80, xp: 120, firstSpawn: 67 }),
   wolves: camp({ name: 'Loups', hp: 2860, ad: 55, attackSpeed: 0.625, gold: 85, xp: 80, firstSpawn: 55 }),
   raptors: camp({ name: 'Raptors', hp: 3700, ad: 45, attackSpeed: 0.667, range: 300, gold: 75, xp: 70, firstSpawn: 55 }),
@@ -54,10 +54,10 @@ export const MONSTER_STATS: Record<CampKind, MonsterStats> = {
   scuttle: camp({ name: 'Carapateur', hp: 1007, gold: 55, xp: 100, firstSpawn: 175, respawn: 150, passive: true, radius: 80 }),
   dragon: camp({
     name: 'Dragon', hp: 5106, ad: 70, attackSpeed: 0.5, range: 500, armor: 65.6, mr: 47.8, radius: 200,
-    gold: 75, xp: 300, firstSpawn: 300, respawn: 300, leash: 1100, epic: true, buff: 'dragon',
+    gold: 75, xp: 300, firstSpawn: 300, respawn: 300, leash: 400, epic: true, buff: 'dragon',
   }),
   baron: camp({
     name: 'Nashor', hp: 17792, ad: 350, attackSpeed: 0.625, range: 955, armor: 104, mr: 67, radius: 240,
-    gold: 150, xp: 650, firstSpawn: 20 * 60, respawn: 6 * 60, leash: 1100, epic: true, buff: 'baron',
+    gold: 150, xp: 650, firstSpawn: 20 * 60, respawn: 6 * 60, leash: 0, epic: true, buff: 'baron',
   }),
 };

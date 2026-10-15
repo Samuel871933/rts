@@ -60,6 +60,9 @@ export function describeEvent(game: Game, e: GameEventRecord, playerTeam: Team):
     case 'autoRetreat':
       if (!ours(e.championId)) return null;
       return line(`${championName(game, e.championId)} se replie (PV bas)`, 'neutral');
+    case 'turretRetreat':
+      if (!ours(e.championId)) return null;
+      return line(`${championName(game, e.championId)} quitte la tour (plus de sbires)`, 'neutral');
     case 'recallCancelled':
       if (!ours(e.championId)) return null;
       return line(`Rappel de ${championName(game, e.championId)} interrompu`, 'bad');
@@ -68,7 +71,9 @@ export function describeEvent(game: Game, e: GameEventRecord, playerTeam: Team):
       return line(
         e.reason === 'noWardCharge'
           ? `${championName(game, e.championId)} n'a plus de balise`
-          : 'Cible invulnérable : détruis d’abord les structures précédentes',
+          : e.reason === 'campEmpty'
+            ? `${championName(game, e.championId)} : camp vide, action suivante`
+            : 'Cible invulnérable : détruis d’abord les structures précédentes',
         'neutral',
       );
     case 'victory':

@@ -13,6 +13,8 @@ export function orderLabel(order: Order): string {
       return 'Attaque-déplacement';
     case 'attack':
       return 'Attaque ciblée';
+    case 'camp':
+      return 'Camp';
     case 'ward':
       return 'Balise';
     case 'recall':

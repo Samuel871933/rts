@@ -3,7 +3,7 @@ import { useHud } from '../core/GameSessionContext';
 import styles from './hud.module.css';
 
 export function EventFeed() {
-  const { feed } = useHud();
+  const feed = useHud((h) => h.feed);
   if (feed.length === 0) return null;
   return (
     <ul className={styles.feed}>

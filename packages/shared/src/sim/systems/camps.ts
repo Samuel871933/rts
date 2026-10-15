@@ -57,8 +57,27 @@ export function updateCamps(game: Game) {
   }
 }
 
-/** Monster AI: idle at camp, fight back when attacked, reset to full HP when dragged past its leash. */
+function startReset(m: MonsterUnit) {
+  m.targetId = null;
+  m.resetting = true;
+  m.blockedSince = null;
+}
+
+/** Where to stand to fight `target` without leaving the camp area. */
+function chaseSpot(m: MonsterUnit, target: Vec2): Vec2 {
+  const d = dist(m.home, target);
+  if (d <= m.leash) return target;
+  const k = m.leash / d;
+  return { x: m.home.x + (target.x - m.home.x) * k, y: m.home.y + (target.y - m.home.y) * k };
+}
+
+/**
+ * Monster AI, like LoL camps: idle at camp, fight back when attacked, never leave the camp area.
+ * It resets (walks home, back to full HP) when its target leaves the area, or when it can't
+ * reach it for a few seconds (kiting from outside the leash).
+ */
 export function updateMonsters(game: Game, dt: number) {
+  const time = game.state.time;
   for (const m of game.state.units.values()) {
     if (m.kind !== 'monster' || !m.alive) continue;
 
@@ -82,24 +101,35 @@ export function updateMonsters(game: Game, dt: number) {
     if (!target?.alive) {
       // Switch to whoever hit us last, if still around.
       const last = m.lastDamagedBy !== null ? game.get(m.lastDamagedBy) : undefined;
-      target = last?.alive && game.state.time - m.lastDamagedAt < 3 ? last : undefined;
+      target = last?.alive && time - m.lastDamagedAt < 3 ? last : undefined;
       m.targetId = target?.id ?? null;
+      m.blockedSince = null;
     }
 
     if (!target) {
       if (dist(m.pos, m.home) > 40) moveToward(game, m, m.home);
-      else if (game.state.time - m.lastDamagedAt > 5) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.05 * dt);
+      else if (time - m.lastDamagedAt > 5) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.05 * dt);
       continue;
     }
 
-    if (dist(m.home, m.pos) > m.leash || dist(m.home, target.pos) > m.leash + 300) {
-      m.targetId = null;
-      m.resetting = true;
+    if (dist(m.home, target.pos) > m.leash + RULES.monsterDisengage) {
+      startReset(m);
       continue;
     }
 
-    if (dist(m.pos, target.pos) <= m.range + m.radius + target.radius) stopMoving(m);
-    else moveToward(game, m, target.pos);
+    if (dist(m.pos, target.pos) <= m.range + m.radius + target.radius) {
+      stopMoving(m);
+      m.blockedSince = null;
+      continue;
+    }
+    m.blockedSince ??= time;
+    if (time - m.blockedSince >= RULES.monsterPatience) {
+      startReset(m);
+      continue;
+    }
+    const spot = chaseSpot(m, target.pos);
+    if (dist(m.pos, spot) > 20) moveToward(game, m, spot);
+    else stopMoving(m);
   }
 }
 
