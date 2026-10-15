@@ -1,0 +1,70 @@
+.page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(61, 139, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(255, 77, 94, 0.1), transparent 45%),
+    var(--bg);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.logo {
+  font-size: 40px;
+  text-align: center;
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+.tagline {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 4px 0 24px;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabs button[aria-selected='true'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}

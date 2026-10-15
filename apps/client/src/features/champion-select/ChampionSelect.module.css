@@ -1,0 +1,254 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  font-size: 30px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hint {
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+.error {
+  color: var(--danger);
+}
+
+/* Role slots */
+.slots {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.slot {
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.activeSlot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 24px rgba(200, 170, 110, 0.2);
+}
+
+.slotMain {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.slotEmpty {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px dashed var(--border-strong);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.slotText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.slotRole {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.slotClear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.slotClear:hover {
+  color: var(--danger);
+}
+
+/* Grid + details */
+.body {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.tile:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.picked {
+  border-color: var(--border-strong);
+  opacity: 0.8;
+}
+
+.tileName {
+  font-weight: 700;
+}
+
+.tileMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #1a1408;
+}
+
+.details {
+  position: sticky;
+  top: 16px;
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.details h3 {
+  font-size: 24px;
+}
+
+.title {
+  margin: -6px 0 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.chips span {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.bar div {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+}
+
+.ability {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.ability small {
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .body {
+    grid-template-columns: 1fr;
+  }
+  .details {
+    position: static;
+  }
+}

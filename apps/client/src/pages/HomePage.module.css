@@ -1,0 +1,35 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding: 32px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(120deg, rgba(61, 139, 255, 0.12), transparent 50%),
+    linear-gradient(300deg, rgba(255, 77, 94, 0.1), transparent 50%),
+    var(--panel-solid);
+}
+
+.hero h1 {
+  font-size: 34px;
+}
+
+.hero p {
+  max-width: 620px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
