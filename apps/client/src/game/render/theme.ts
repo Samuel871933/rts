@@ -1,16 +1,21 @@
 import type { CampKind, Side } from '@macrogod/shared';
 
-/** Map + unit palette of the Pixi renderer. */
+/** Map + unit palette of the Pixi renderer: retro-futuristic "Spire" theme (brass, patina, arc energy). */
 export const MAP_COLORS = {
-  wall: '#0f1a14',
-  ground: '#2e3d28',
-  laneEdge: '#3e4a33',
-  laneDirt: '#5c5139',
-  river: '#1d4a63',
-  baseBlue: '#1e2f45',
-  baseRed: '#41232a',
-  fountainBlue: '#2d5d9b',
-  fountainRed: '#9b2d3a',
+  wall: '#191309',
+  wallPlate: '#241c0f',
+  rivet: '#8a6a32',
+  ground: '#453a28',
+  laneEdge: '#6b5a35',
+  laneDirt: '#8a7245',
+  river: '#1fb8c4',
+  riverGlow: '#8ef2ff',
+  tunnel: '#5a4a2a',
+  tunnelMouth: '#d9a53f',
+  baseBlue: '#1d2a3f',
+  baseRed: '#3a2420',
+  fountainBlue: '#2d8bdb',
+  fountainRed: '#db4b3a',
 };
 
 export const TEAM_COLORS: Record<Side, number> = {

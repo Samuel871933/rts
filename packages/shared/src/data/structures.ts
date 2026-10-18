@@ -1,5 +1,8 @@
+import { pointAtFraction } from '../math';
 import type { Vec2 } from '../math';
 import type { Lane, Team } from '../types';
+import { LANE_PATHS } from './map';
+import { NEXUS_POS, NEXUS_TURRET_POS } from './mapGeometry';
 
 export type StructureKind = 'turret' | 'inhibitor' | 'nexus';
 export type StructureTier = 'outer' | 'inner' | 'inhib' | 'nexus';
@@ -29,7 +32,7 @@ export interface StructureStats {
   globalGold: number;
 }
 
-/** LoL wiki turret page (current patch values). */
+/** LoL wiki turret page (current patch values), kept as the gameplay baseline. */
 export const TURRET_STATS: Record<StructureTier, StructureStats> = {
   outer: { hp: 9000, armor: 60, mr: 60, adMin: 182, adMax: 350, attackSpeed: 0.833, radius: 90, globalGold: 50 },
   inner: { hp: 5000, armor: 60, mr: 60, adMin: 187, adMax: 427, attackSpeed: 0.833, radius: 90, globalGold: 25 },
@@ -40,54 +43,34 @@ export const TURRET_STATS: Record<StructureTier, StructureStats> = {
 export const INHIBITOR_STATS = { hp: 4000, armor: 20, mr: 0, radius: 160, globalGold: 50 };
 export const NEXUS_STATS = { hp: 5500, armor: 0, mr: 0, radius: 240 };
 
-const v = (x: number, y: number): Vec2 => ({ x, y });
+/**
+ * Turret/inhibitor positions are placed along `LANE_PATHS` by arc-length fraction from each team's
+ * own nexus (0) toward the enemy nexus (1), instead of hand-copied Summoner's Rift coordinates: any
+ * change to the lane shape in `mapGeometry.ts` keeps the structures on the lane automatically.
+ */
+const FRACTION_FROM_OWN_NEXUS = { outer: 0.3, inner: 0.14, inhibTurret: 0.065, inhibitor: 0.05 };
 
-interface LaneLayout {
-  outer: Vec2;
-  inner: Vec2;
-  inhibTurret: Vec2;
-  inhibitor: Vec2;
+function laneStructurePos(team: Team, lane: Lane, tier: keyof typeof FRACTION_FROM_OWN_NEXUS): Vec2 {
+  const t = FRACTION_FROM_OWN_NEXUS[tier];
+  return pointAtFraction(LANE_PATHS[lane], team === 'blue' ? t : 1 - t);
 }
 
-const LAYOUT: Record<Team, { lanes: Record<Lane, LaneLayout>; nexusTurrets: [Vec2, Vec2]; nexus: Vec2 }> = {
-  blue: {
-    lanes: {
-      top: { outer: v(981, 10441), inner: v(1512, 6699), inhibTurret: v(1169, 4287), inhibitor: v(1171, 3571) },
-      mid: { outer: v(5846, 6396), inner: v(5048, 4812), inhibTurret: v(3651, 3696), inhibitor: v(3203, 3208) },
-      bot: { outer: v(10504, 1029), inner: v(6919, 1483), inhibTurret: v(4281, 1253), inhibitor: v(3452, 1236) },
-    },
-    nexusTurrets: [v(1748, 2270), v(2177, 1807)],
-    nexus: v(1551, 1659),
-  },
-  red: {
-    lanes: {
-      top: { outer: v(4318, 13875), inner: v(7943, 13411), inhibTurret: v(10481, 13650), inhibitor: v(11261, 13676) },
-      mid: { outer: v(8955, 8510), inner: v(9767, 10113), inhibTurret: v(11134, 11207), inhibitor: v(11598, 11667) },
-      bot: { outer: v(13866, 4505), inner: v(13327, 8226), inhibTurret: v(13624, 10572), inhibitor: v(13604, 11316) },
-    },
-    nexusTurrets: [v(12611, 13084), v(13052, 12612)],
-    nexus: v(13250, 13150),
-  },
-};
-
 function buildTeamStructures(team: Team): StructureDef[] {
-  const layout = LAYOUT[team];
   const id = (lane: Lane, tier: string) => `${team}_${lane}_${tier}`;
   const defs: StructureDef[] = [];
   const lanes: Lane[] = ['top', 'mid', 'bot'];
 
   for (const lane of lanes) {
-    const l = layout.lanes[lane];
     defs.push(
-      { id: id(lane, 'outer'), kind: 'turret', team, lane, tier: 'outer', pos: l.outer, protectedBy: [], protectMode: 'all' },
-      { id: id(lane, 'inner'), kind: 'turret', team, lane, tier: 'inner', pos: l.inner, protectedBy: [id(lane, 'outer')], protectMode: 'all' },
-      { id: id(lane, 'inhib_turret'), kind: 'turret', team, lane, tier: 'inhib', pos: l.inhibTurret, protectedBy: [id(lane, 'inner')], protectMode: 'all' },
-      { id: id(lane, 'inhibitor'), kind: 'inhibitor', team, lane, tier: 'inhib', pos: l.inhibitor, protectedBy: [id(lane, 'inhib_turret')], protectMode: 'all' },
+      { id: id(lane, 'outer'), kind: 'turret', team, lane, tier: 'outer', pos: laneStructurePos(team, lane, 'outer'), protectedBy: [], protectMode: 'all' },
+      { id: id(lane, 'inner'), kind: 'turret', team, lane, tier: 'inner', pos: laneStructurePos(team, lane, 'inner'), protectedBy: [id(lane, 'outer')], protectMode: 'all' },
+      { id: id(lane, 'inhib_turret'), kind: 'turret', team, lane, tier: 'inhib', pos: laneStructurePos(team, lane, 'inhibTurret'), protectedBy: [id(lane, 'inner')], protectMode: 'all' },
+      { id: id(lane, 'inhibitor'), kind: 'inhibitor', team, lane, tier: 'inhib', pos: laneStructurePos(team, lane, 'inhibitor'), protectedBy: [id(lane, 'inhib_turret')], protectMode: 'all' },
     );
   }
 
   const inhibitors = lanes.map((lane) => id(lane, 'inhibitor'));
-  const nexusTurrets = layout.nexusTurrets.map((pos, i) => ({
+  const nexusTurrets = NEXUS_TURRET_POS[team].map((pos, i) => ({
     id: `${team}_nexus_turret_${i + 1}`,
     kind: 'turret' as const,
     team,
@@ -103,7 +86,7 @@ function buildTeamStructures(team: Team): StructureDef[] {
     team,
     lane: null,
     tier: 'nexus',
-    pos: layout.nexus,
+    pos: NEXUS_POS[team],
     protectedBy: nexusTurrets.map((t) => t.id),
     protectMode: 'all',
   });

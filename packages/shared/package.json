@@ -10,9 +10,11 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:terrain": "tsx scripts/build-terrain.ts"
   },
   "devDependencies": {
+    "tsx": "^4.23.15",
     "vitest": "5.0.4"
   }
 }

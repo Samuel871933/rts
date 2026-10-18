@@ -20,8 +20,9 @@ Autres scripts : `npm run typecheck`, `npm test` (simulation headless), `npm run
 ```
 packages/shared   Simulation pure et déterministe (aucune dépendance navigateur) + données de jeu
   src/data/         Carte, tours, sbires, monstres, champions, objets, règles LoL
-                    terrain.generated.ts : murs / chemins / rivière / bases calqués sur la minimap
-                    officielle (scripts/build-terrain.py, en attendant notre propre carte)
+                    terrain.generated.ts : murs / chemins / rivière / bases généré depuis
+                    mapGeometry.ts (npm run build:terrain -w @macrogod/shared), notre propre carte
+                    ("the Spire", thème rétro-futuriste)
   src/sim/          Game (pas fixe 20 ticks/s de jeu), systèmes (vagues, combat, IA champions, vision…)
 apps/server       API Express + Sequelize (comptes JWT, catalogue champions, parties)
 apps/client       React + Vite (pages) et PixiJS (rendu de la partie)

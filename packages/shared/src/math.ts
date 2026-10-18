@@ -23,3 +23,31 @@ export function closestOnSegment(p: Vec2, a: Vec2, b: Vec2): { point: Vec2; t: n
   const t = lenSq === 0 ? 0 : clamp(((p.x - a.x) * abx + (p.y - a.y) * aby) / lenSq, 0, 1);
   return { point: { x: a.x + abx * t, y: a.y + aby * t }, t };
 }
+
+/** Closest point of a polyline to p, with the distance to it. */
+export function closestOnPath(p: Vec2, path: readonly Vec2[]): { point: Vec2; distance: number } {
+  let best = { point: path[0], distance: Infinity };
+  for (let i = 0; i < path.length - 1; i++) {
+    const { point } = closestOnSegment(p, path[i], path[i + 1]);
+    const d = dist(p, point);
+    if (d < best.distance) best = { point, distance: d };
+  }
+  return best;
+}
+
+/** Point at arc-length fraction `t` (0..1) along a polyline, from its first vertex. */
+export function pointAtFraction(path: readonly Vec2[], t: number): Vec2 {
+  const lengths: number[] = [];
+  let total = 0;
+  for (let i = 0; i < path.length - 1; i++) {
+    const len = dist(path[i], path[i + 1]);
+    lengths.push(len);
+    total += len;
+  }
+  let target = clamp(t, 0, 1) * total;
+  for (let i = 0; i < lengths.length; i++) {
+    if (target <= lengths[i] || i === lengths.length - 1) return lerpVec(path[i], path[i + 1], lengths[i] === 0 ? 0 : clamp(target / lengths[i], 0, 1));
+    target -= lengths[i];
+  }
+  return path[path.length - 1];
+}

@@ -1,4 +1,17 @@
-import { CAMPS, FOUNTAINS, LANE_PATHS, LANE_WIDTH, MAP_SIZE, TERRAIN, isTerrainWalkable } from '@macrogod/shared';
+import {
+  CAMPS,
+  FOUNTAINS,
+  JUNGLE_LINKS,
+  JUNGLE_LINK_WIDTH,
+  LANE_PATHS,
+  LANE_WIDTH,
+  MAP_SIZE,
+  TERRAIN,
+  TUNNEL_PATH,
+  TUNNEL_WIDTH,
+  isTerrainWalkable,
+  type Vec2,
+} from '@macrogod/shared';
 import { toView } from './Camera';
 import { terrainLoops, type Loop } from './terrainContours';
 import { MAP_COLORS } from './theme';
@@ -20,23 +33,32 @@ function fillLoops(ctx: CanvasRenderingContext2D, loops: Loop[], color: string) 
   ctx.fill('evenodd');
 }
 
-/** Tree canopies over the walls so the terrain reads as forest, not void. */
-function paintForest(ctx: CanvasRenderingContext2D) {
+/** Riveted brass plating over the walls, so the terrain reads as industrial hull, not void. */
+function paintIndustrial(ctx: CanvasRenderingContext2D) {
   let seed = 1337;
   const rand = () => {
     seed = (seed * 16807) % 2147483647;
     return seed / 2147483647;
   };
-  for (let i = 0; i < 2600; i++) {
+  for (let i = 0; i < 1900; i++) {
     const x = rand() * MAP_SIZE;
     const y = rand() * MAP_SIZE;
-    const r = 90 + rand() * 160;
-    const color = rand() > 0.5 ? '#14261b' : '#112016';
+    const w = 160 + rand() * 260;
+    const h = 160 + rand() * 260;
     if (isTerrainWalkable({ x, y: MAP_SIZE - y })) continue;
-    ctx.fillStyle = color;
+    ctx.fillStyle = rand() > 0.5 ? MAP_COLORS.wallPlate : MAP_COLORS.wall;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.lineWidth = 14;
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.rect(x - w / 2, y - h / 2, w, h);
     ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = MAP_COLORS.rivet;
+    for (const [rx, ry] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+      ctx.beginPath();
+      ctx.arc(x + (rx * w) / 2 - rx * 24, y + (ry * h) / 2 - ry * 24, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }
 
@@ -51,9 +73,22 @@ function clipToSide(ctx: CanvasRenderingContext2D, side: 'blue' | 'red') {
   ctx.clip();
 }
 
+/** A regular hexagon outline centered at `p`, flat side up — the camp/relic marker motif. */
+function strokeHex(ctx: CanvasRenderingContext2D, p: Vec2, r: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i + Math.PI / 6;
+    const x = p.x + Math.cos(a) * r;
+    const y = p.y + Math.sin(a) * r;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
 /**
- * Summoner's Rift terrain painted on a 2D canvas of `px` pixels: forest walls, paths, river, bases,
- * lanes and fountains. Used by the map layer as a texture.
+ * "The Spire" terrain painted on a 2D canvas of `px` pixels: riveted brass walls, paths, an arc-energy
+ * river, bases and fountains. Used by the map layer as a texture.
  */
 export function paintMap(ctx: CanvasRenderingContext2D, px: number) {
   ctx.save();
@@ -63,7 +98,7 @@ export function paintMap(ctx: CanvasRenderingContext2D, px: number) {
 
   ctx.fillStyle = MAP_COLORS.wall;
   ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-  paintForest(ctx);
+  paintIndustrial(ctx);
 
   const walkable = terrainLoops(WALKABLE);
   fillLoops(ctx, walkable, MAP_COLORS.ground);
@@ -73,7 +108,15 @@ export function paintMap(ctx: CanvasRenderingContext2D, px: number) {
     fillLoops(ctx, terrainLoops([TERRAIN.base]), side === 'blue' ? MAP_COLORS.baseBlue : MAP_COLORS.baseRed);
     ctx.restore();
   }
-  fillLoops(ctx, terrainLoops([TERRAIN.river]), MAP_COLORS.river);
+  const riverLoops = terrainLoops([TERRAIN.river]);
+  fillLoops(ctx, riverLoops, MAP_COLORS.river);
+  ctx.save();
+  ctx.strokeStyle = MAP_COLORS.riverGlow;
+  ctx.globalAlpha = 0.35;
+  ctx.lineWidth = 50;
+  tracePath(ctx, riverLoops);
+  ctx.stroke();
+  ctx.restore();
 
   // Lanes and camp marks stay inside the walkable terrain.
   ctx.save();
@@ -91,13 +134,38 @@ export function paintMap(ctx: CanvasRenderingContext2D, px: number) {
       ctx.stroke();
     }
   }
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-  ctx.lineWidth = 24;
-  for (const camp of CAMPS) {
-    const p = toView(camp.pos);
+  // Camp-to-camp jungle paths: a thin worn track, same idiom as the lane dirt stroke.
+  ctx.strokeStyle = MAP_COLORS.laneDirt;
+  ctx.lineWidth = JUNGLE_LINK_WIDTH * 0.5;
+  for (const { a, b } of JUNGLE_LINKS) {
+    const pa = toView(a);
+    const pb = toView(b);
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 140, 0, Math.PI * 2);
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
     ctx.stroke();
+  }
+
+  ctx.strokeStyle = MAP_COLORS.rivet;
+  ctx.globalAlpha = 0.55;
+  ctx.lineWidth = 18;
+  for (const camp of CAMPS) strokeHex(ctx, toView(camp.pos), 150);
+  ctx.globalAlpha = 1;
+
+  // Maintenance tunnel: a darker, dashed passage (enclosed, unlike the open lanes) with lit mouths.
+  ctx.strokeStyle = MAP_COLORS.tunnel;
+  ctx.lineWidth = TUNNEL_WIDTH;
+  ctx.setLineDash([60, 90]);
+  ctx.beginPath();
+  TUNNEL_PATH.map(toView).forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  for (const end of [TUNNEL_PATH[0], TUNNEL_PATH[TUNNEL_PATH.length - 1]]) {
+    const p = toView(end);
+    ctx.fillStyle = MAP_COLORS.tunnelMouth;
+    ctx.beginPath();
+    ctx.rect(p.x - 90, p.y - 90, 180, 180);
+    ctx.fill();
   }
   ctx.restore();
 
